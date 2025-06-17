@@ -1,0 +1,58 @@
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({ 
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: function () {
+      return this.provider === "password";
+    },
+  },
+  phone: {
+    type: String,
+    required: function () {
+      return this.provider === "password";
+    },
+  },
+  address: {
+    type: String,
+    required: function () {
+      return this.provider === "password";
+    },
+  },
+  provider: {
+    type: String,
+    required: true,
+  },
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user",
+  },
+  uid: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  profilePicture: {
+    type: String,
+    default:
+      "https://media.istockphoto.com/id/1337144146/vector/default-avatar-profile-icon-vector.jpg?s=612x612&w=0&k=20&c=BIbFwuv7FxTWvh5S3vB6bkT0Qv8Vn8N5Ffseq84ClGI=",
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+const User = mongoose.model("User", userSchema);
+
+export default User;
