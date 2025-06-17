@@ -1,10 +1,7 @@
-const asyncHandler = require('express-async-handler');
-const User = require('../models/userModel');
-const generateToken = require('../utils/generateToken');
+import asyncHandler from 'express-async-handler';
+import User from '../models/userModel.js';
+import generateToken from '../utils/generateToken.js';
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
   const userExists = await User.findOne({ email });
@@ -26,9 +23,6 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Auth user & get token
-// @route   POST /api/auth/login
-// @access  Public
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -45,4 +39,4 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { registerUser, authUser };
+export { registerUser, authUser };

@@ -1,10 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
+import express from 'express';
+import { protect } from '../middleware/authMiddleware.js';
 
-// Example protected route
+const router = express.Router();
+
 router.get('/profile', protect, (req, res) => {
   res.json(req.user);
 });
 
-module.exports = router;
+export default router;

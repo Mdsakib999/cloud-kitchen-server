@@ -1,10 +1,9 @@
-const app = require('./app');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
-dotenv.config();
+import app from './app.js';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js';
 
-// Connect to MongoDB
-connectDB();
+dotenv.config();
+await connectDB();
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
