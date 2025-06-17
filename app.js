@@ -1,12 +1,12 @@
-const express = require('express');
-const morgan = require('morgan');
-const cors = require('cors');
-const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+import express from 'express';
+import morgan from 'morgan';
+import cors from 'cors';
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 // Route files
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const orderRoutes = require('./routes/orderRoutes');
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 
 const app = express();
 
@@ -34,4 +34,4 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-module.exports = app;
+export default app;
