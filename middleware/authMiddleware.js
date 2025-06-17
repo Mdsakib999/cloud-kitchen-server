@@ -23,5 +23,4 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-// Export the middleware
 export { protect };

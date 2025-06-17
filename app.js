@@ -5,7 +5,6 @@ import authRouter from './routes/auth.routes.js'
 
 const app = express();
 
-// Body parser
 app.use(express.json());
 
 // Enable CORS
@@ -18,7 +17,6 @@ app.get("/", (req, res) => {
   res.send({ message: "Cloud Kitchen API is running..." });
 });
 
-// Error handling
 app.use(notFound);
 app.use(errorHandler);
 
