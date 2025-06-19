@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+import { notFound, errorHandler } from "./middleware/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import cookieParser from "cookie-parser";
 const app = express();
