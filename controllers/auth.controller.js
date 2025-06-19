@@ -1,48 +1,49 @@
-import bcrypt from "bcryptjs";
-import User from '../models/user.model.js'
+import admin from "../config/firebase.js";
+import User from "../models/user.model.js";
 import generateToken from "../utils/generateToken.js";
 
 const registerUser = async (req, res) => {
-  const { name, email, password, phone, address, provider, uid, role } = req.body;
+  const { name, email, phone, address, provider, uid, role } = req.body;
 
   try {
-    // Check if user already exists by email or uid
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+    const idToken = authHeader.split(" ")[1];
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    if (decodedToken.uid !== uid) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
     const existingUser = await User.findOne({ $or: [{ email }, { uid }] });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Prepare user data
     const userData = {
       name,
       email,
       provider,
-      password: password || null,
       phone: phone || null,
       address: address || null,
       uid,
       role: role || "user",
+      isEmailVerified: decodedToken.email_verified || false,
     };
 
-    // If provider is "password", include and hash password, phone, and address
-    if (provider === "password") {
-      if (!password || !phone || !address) {
-        return res.status(400).json({ message: "Password, phone, and address are required for email/password registration" });
-      }
-      const salt = await bcrypt.genSalt(10);
-      userData.password = await bcrypt.hash(password, salt);
-      userData.phone = phone;
-      userData.address = address;
-    }
-
-    // Create and save new user
     const user = new User(userData);
     await user.save();
 
-    // Generate token
     const token = generateToken(user._id);
 
-    // Return user data and token
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -52,41 +53,59 @@ const registerUser = async (req, res) => {
       provider: user.provider,
       uid: user.uid,
       role: user.role,
+      isEmailVerified: user.isEmailVerified,
       profilePicture: user.profilePicture,
-      token,
     });
   } catch (error) {
     console.error("Error in registerUser:", error);
+    if (error.code === "auth/id-token-expired") {
+      return res
+        .status(401)
+        .json({ message: "Token expired. Please sign in again." });
+    }
+    if (error.code === "auth/id-token-revoked") {
+      return res
+        .status(401)
+        .json({ message: "Token revoked. Please sign in again." });
+    }
+    if (error.code === "auth/invalid-id-token") {
+      return res
+        .status(401)
+        .json({ message: "Invalid token. Please sign in again." });
+    }
+
     res.status(500).json({ message: error.message || "Server error" });
   }
 };
 
-// Login User Controller
-const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-
+const verifyToken = async (req, res) => {
   try {
-    // Check if user exists
-    const user = await User.findOne({ email });
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+    const idToken = authHeader.split(" ")[1];
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    const user = await User.findOne({ email: decodedToken?.email });
+
     if (!user) {
-      return res.status(400).json({ message: "No user found with this email" });
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.isEmailVerified !== decodedToken.email_verified) {
+      user.isEmailVerified = decodedToken.email_verified;
+      await user.save();
     }
 
-    // For Google provider, deny email/password login
-    if (user.provider === "google") {
-      return res.status(400).json({ message: "Please use Google Sign-In for this account" });
-    }
-
-    // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Incorrect password" });
-    }
-
-    // Generate token
     const token = generateToken(user._id);
 
-    // Return user data and token
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -96,16 +115,51 @@ const loginUser = async (req, res) => {
       provider: user.provider,
       uid: user.uid,
       role: user.role,
+      isEmailVerified: decodedToken.email_verified || user.isEmailVerified,
       profilePicture: user.profilePicture,
-      token,
     });
   } catch (error) {
-    console.error("Error in login:", error);
+    console.error("Error in verifyToken:", error);
     res.status(500).json({ message: error.message || "Server error" });
   }
 };
 
-export {
-  registerUser,
-  loginUser
-}
+// auth.controller.js
+const handleEmailVerification = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ message: "No token provided" });
+    }
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    console.log("from decodedToken===>", decodedToken);
+
+    const user = await User.findOne({ email: decodedToken.email });
+    console.log("from handleEmailVerification===>", user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (decodedToken.email_verified && !user.isEmailVerified) {
+      user.isEmailVerified = true;
+      await user.save();
+    }
+    res
+      .status(200)
+      .json({ message: "Email verified successfully", isEmailVerified: true });
+  } catch (error) {
+    console.error("Error in handleEmailVerification:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const logout = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Error in logout:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export { registerUser, verifyToken, handleEmailVerification, logout };

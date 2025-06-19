@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({ 
+const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -9,12 +9,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-  },
-  password: {
-    type: String,
-    required: function () {
-      return this.provider === "password";
-    },
   },
   phone: {
     type: String,
@@ -41,6 +35,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
   },
   profilePicture: {
     type: String,

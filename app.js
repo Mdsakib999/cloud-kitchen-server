@@ -1,16 +1,22 @@
 import express from "express";
 import cors from "cors";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
-import authRouter from './routes/auth.routes.js'
-
+import authRouter from "./routes/auth.routes.js";
+import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(express.json());
 
-// Enable CORS
-app.use(cors());
+// middlewares
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+app.use(cookieParser());
 
-// Mount routes
+// routes
 app.use("/api/auth", authRouter);
 
 app.get("/", (req, res) => {
