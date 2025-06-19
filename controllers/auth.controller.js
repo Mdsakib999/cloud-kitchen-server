@@ -1,83 +1,7 @@
+import { uploadToCloudinary } from "../config/cloudinary.js";
 import admin from "../config/firebase.js";
 import User from "../models/user.model.js";
 import generateToken from "../utils/generateToken.js";
-
-// const registerUser = async (req, res) => {
-//   const { name, email, phone, address, provider, uid, role } = req.body;
-
-//   try {
-//     const authHeader = req.headers.authorization;
-//     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-//       return res.status(401).json({ message: "No token provided" });
-//     }
-//     const idToken = authHeader.split(" ")[1];
-//     const decodedToken = await admin.auth().verifyIdToken(idToken);
-//     if (decodedToken.uid !== uid) {
-//       return res.status(401).json({ message: "Invalid token" });
-//     }
-
-//     const existingUser = await User.findOne({ $or: [{ email }, { uid }] });
-
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-
-//     const userData = {
-//       name,
-//       email,
-//       provider,
-//       phone: phone || null,
-//       address: address || null,
-//       uid,
-//       role: role || "user",
-//       isEmailVerified: decodedToken.email_verified || false,
-//     };
-
-//     const user = new User(userData);
-//     await user.save();
-
-//     const token = generateToken(user._id);
-
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "strict",
-//       maxAge: 30 * 24 * 60 * 60 * 1000,
-//     });
-
-//     res.status(201).json({
-//       _id: user._id,
-//       name: user.name,
-//       email: user.email,
-//       phone: user.phone,
-//       address: user.address,
-//       provider: user.provider,
-//       uid: user.uid,
-//       role: user.role,
-//       isEmailVerified: user.isEmailVerified,
-//       profilePicture: user.profilePicture,
-//     });
-//   } catch (error) {
-//     console.error("Error in registerUser:", error);
-//     if (error.code === "auth/id-token-expired") {
-//       return res
-//         .status(401)
-//         .json({ message: "Token expired. Please sign in again." });
-//     }
-//     if (error.code === "auth/id-token-revoked") {
-//       return res
-//         .status(401)
-//         .json({ message: "Token revoked. Please sign in again." });
-//     }
-//     if (error.code === "auth/invalid-id-token") {
-//       return res
-//         .status(401)
-//         .json({ message: "Invalid token. Please sign in again." });
-//     }
-
-//     res.status(500).json({ message: error.message || "Server error" });
-//   }
-// };
 
 const registerUser = async (req, res) => {
   const { name, email, phone, address, provider, uid, role } = req.body;
@@ -261,4 +185,95 @@ const logout = async (req, res) => {
   }
 };
 
-export { registerUser, verifyToken, handleEmailVerification, logout };
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const updateUser = async (req, res) => {
+  const { name, phone, address } = req.body;
+  const userId = req.params?.id || req.user?._id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Handle profile picture upload if file is provided
+    let profilePictureUrl = user.profilePicture;
+    if (req.file) {
+      try {
+        profilePictureUrl = await uploadToCloudinary(
+          req.file.buffer,
+          "profile-pictures", // folder name in cloudinary
+          "image"
+        );
+      } catch (uploadError) {
+        console.error("Error uploading to Cloudinary:", uploadError);
+        return res
+          .status(500)
+          .json({ message: "Failed to upload profile picture" });
+      }
+    }
+
+    // Update user fields
+    user.name = name || user.name;
+    user.phone = phone || user.phone;
+    user.address = address || user.address;
+    user.profilePicture = profilePictureUrl;
+
+    await user.save();
+
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      provider: user.provider,
+      uid: user.uid,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      profilePicture: user.profilePicture,
+    });
+  } catch (error) {
+    console.error("Error in updateUser:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  const userId = req.params?.id || req.user?._id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await admin.auth().deleteUser(user.uid);
+    await user.deleteOne();
+
+    res.clearCookie("token");
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error in deleteUser:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export {
+  registerUser,
+  verifyToken,
+  handleEmailVerification,
+  updateUser,
+  logout,
+  deleteUser,
+  getAllUsers,
+};
