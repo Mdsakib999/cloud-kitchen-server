@@ -52,6 +52,15 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.pre("deleteOne", { document: true }, async function (next) {
+  const userId = this._id;
+  console.log("inside delete middleware", userId);
+  // 6853eb95de87ffbb65f9620e
+  // await Order.deleteMany({ userId });
+  // await Comment.deleteMany({ userId });
+  next();
+});
+
 const User = mongoose.model("User", userSchema);
 
 export default User;
