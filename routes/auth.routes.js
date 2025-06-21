@@ -20,6 +20,6 @@ authRouter.post("/verify-token", verifyToken);
 authRouter.post("/verify-email", handleEmailVerification);
 authRouter.post("/logout", protect, logout);
 authRouter.put("/:id", protect, uploadProfilePicture, updateUser);
-authRouter.delete("/:id", protect, isAdmin, deleteUser);
+authRouter.delete("/:id", protect, deleteUser);
 
 export default authRouter;

@@ -76,6 +76,7 @@ const registerUser = async (req, res) => {
       provider: user.provider,
       uid: user.uid,
       role: user.role,
+      createdAt: user.createdAt,
       isEmailVerified: user.isEmailVerified,
       profilePicture: user.profilePicture,
     });
@@ -138,6 +139,7 @@ const verifyToken = async (req, res) => {
       provider: user.provider,
       uid: user.uid,
       role: user.role,
+      createdAt: user.createdAt,
       isEmailVerified: decodedToken.email_verified || user.isEmailVerified,
       profilePicture: user.profilePicture,
     });
@@ -177,7 +179,7 @@ const handleEmailVerification = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    res.cookie("token");
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Error in logout:", error);
@@ -257,11 +259,14 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    res.cookie("token");
+
     await admin.auth().deleteUser(user.uid);
     await user.deleteOne();
 
-    res.clearCookie("token");
-    res.status(200).json({ message: "User deleted successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "User deleted successfully" });
   } catch (error) {
     console.error("Error in deleteUser:", error);
     res.status(500).json({ message: error.message || "Server error" });
