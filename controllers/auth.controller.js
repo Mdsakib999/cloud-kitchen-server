@@ -20,54 +20,26 @@ const registerUser = async (req, res) => {
 
     let user = await User.findOne({ $or: [{ email }, { uid }] });
 
-    // 👉 If user already exists, treat this as login
-    if (user) {
-      const token = generateToken(user._id);
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
+    if (!user) {
+      // Register new user
+      const userData = {
+        name,
+        email,
+        provider,
+        phone: phone || null,
+        address: address || null,
+        uid,
+        role: role || "user",
+        isEmailVerified: decodedToken.email_verified || false,
+      };
 
-      return res.status(200).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        address: user.address,
-        provider: user.provider,
-        uid: user.uid,
-        role: user.role,
-        isEmailVerified: user.isEmailVerified,
-        profilePicture: user.profilePicture,
-      });
+      user = new User(userData);
+      await user.save();
     }
 
-    // 👉 If user does not exist, create (register) user
-    const userData = {
-      name,
-      email,
-      provider,
-      phone: phone || null,
-      address: address || null,
-      uid,
-      role: role || "user",
-      isEmailVerified: decodedToken.email_verified || false,
-    };
-
-    user = new User(userData);
-    await user.save();
-
     const token = generateToken(user._id);
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-
-    res.status(201).json({
+    res.status(user ? 200 : 201).json({
+      token,
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -76,28 +48,11 @@ const registerUser = async (req, res) => {
       provider: user.provider,
       uid: user.uid,
       role: user.role,
-      createdAt: user.createdAt,
       isEmailVerified: user.isEmailVerified,
       profilePicture: user.profilePicture,
     });
   } catch (error) {
     console.error("Error in registerUser:", error);
-    if (error.code === "auth/id-token-expired") {
-      return res
-        .status(401)
-        .json({ message: "Token expired. Please sign in again." });
-    }
-    if (error.code === "auth/id-token-revoked") {
-      return res
-        .status(401)
-        .json({ message: "Token revoked. Please sign in again." });
-    }
-    if (error.code === "auth/invalid-id-token") {
-      return res
-        .status(401)
-        .json({ message: "Invalid token. Please sign in again." });
-    }
-
     res.status(500).json({ message: error.message || "Server error" });
   }
 };
@@ -116,6 +71,7 @@ const verifyToken = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
     if (user.isEmailVerified !== decodedToken.email_verified) {
       user.isEmailVerified = decodedToken.email_verified;
       await user.save();
@@ -123,14 +79,8 @@ const verifyToken = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-
     res.status(200).json({
+      token,
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -140,7 +90,7 @@ const verifyToken = async (req, res) => {
       uid: user.uid,
       role: user.role,
       createdAt: user.createdAt,
-      isEmailVerified: decodedToken.email_verified || user.isEmailVerified,
+      isEmailVerified: user.isEmailVerified,
       profilePicture: user.profilePicture,
     });
   } catch (error) {
@@ -177,19 +127,9 @@ const handleEmailVerification = async (req, res) => {
   }
 };
 
-const logout = async (req, res) => {
-  try {
-    res.cookie("token");
-    res.status(200).json({ message: "Logged out successfully" });
-  } catch (error) {
-    console.error("Error in logout:", error);
-    res.status(500).json({ message: error.message || "Server error" });
-  }
-};
-
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find();
     return res.status(200).json(users);
   } catch (error) {
     console.error(error);
@@ -259,8 +199,6 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.cookie("token");
-
     await admin.auth().deleteUser(user.uid);
     await user.deleteOne();
 
@@ -278,7 +216,6 @@ export {
   verifyToken,
   handleEmailVerification,
   updateUser,
-  logout,
   deleteUser,
   getAllUsers,
 };
