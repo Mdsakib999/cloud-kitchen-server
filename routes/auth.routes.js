@@ -3,7 +3,6 @@ import {
   registerUser,
   verifyToken,
   handleEmailVerification,
-  logout,
   updateUser,
   deleteUser,
   getAllUsers,
@@ -18,7 +17,6 @@ authRouter.get("/all-users", protect, isAdmin, getAllUsers);
 authRouter.post("/register", registerUser);
 authRouter.post("/verify-token", verifyToken);
 authRouter.post("/verify-email", handleEmailVerification);
-authRouter.post("/logout", protect, logout);
 authRouter.put("/:id", protect, uploadProfilePicture, updateUser);
 authRouter.delete("/:id", protect, deleteUser);
 
