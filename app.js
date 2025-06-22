@@ -3,6 +3,7 @@ import cors from "cors";
 import { notFound, errorHandler } from "./middleware/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import cookieParser from "cookie-parser";
+import adminRouter from "./routes/admin.routes.js";
 const app = express();
 
 app.use(express.json());
@@ -18,6 +19,7 @@ app.use(cookieParser());
 
 // routes
 app.use("/api/auth", authRouter);
+app.use("/api/admin", adminRouter);
 
 app.get("/", (req, res) => {
   res.send({ message: "Cloud Kitchen API is running..." });
