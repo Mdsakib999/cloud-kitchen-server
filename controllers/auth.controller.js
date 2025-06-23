@@ -20,6 +20,9 @@ const registerUser = async (req, res) => {
 
     let user = await User.findOne({ $or: [{ email }, { uid }] });
 
+    console.log("user.provider==>", user?.provider);
+    console.log("only provider==>", provider);
+
     if (!user) {
       // Register new user
       const userData = {
@@ -30,6 +33,7 @@ const registerUser = async (req, res) => {
         address: address || null,
         uid,
         role: role || "user",
+        createdAt: user.createdAt,
         isEmailVerified: decodedToken.email_verified || false,
       };
 
@@ -48,6 +52,7 @@ const registerUser = async (req, res) => {
       provider: user.provider,
       uid: user.uid,
       role: user.role,
+      createdAt: user.createdAt,
       isEmailVerified: user.isEmailVerified,
       profilePicture: user.profilePicture,
     });
