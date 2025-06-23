@@ -25,7 +25,7 @@ export const uploadToCloudinary = async (
           console.error("Cloudinary Upload Error:", error);
           reject(error);
         } else {
-          resolve(result.secure_url);
+          resolve(result);
         }
       }
     );
