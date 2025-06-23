@@ -11,7 +11,7 @@ const upload = multer();
 const adminRouter = express.Router();
 // category
 adminRouter.post("/categories", upload.single("image"), addCategory);
-adminRouter.put("/categories/:id", editCategory);
+adminRouter.put("/categories/:id", upload.single("image"), editCategory);
 adminRouter.delete("/categories/:id", deleteCategory);
 adminRouter.get("/categories", getCategories);
 

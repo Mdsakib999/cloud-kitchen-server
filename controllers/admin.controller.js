@@ -24,7 +24,10 @@ const addCategory = asyncHandler(async (req, res) => {
   let imageArray = [];
   if (req.file && req.file.buffer) {
     const result = await uploadToCloudinary(req.file.buffer, "categories");
-    imageArray.push({ url: result.secure_url, public_id: result.public_id });
+    imageArray.push({
+      url: result.secure_url,
+      public_id: result.public_id,
+    });
   }
   const category = await Category.create({ name, image: imageArray });
   res.status(201).json(category);
@@ -73,12 +76,22 @@ const deleteCategory = asyncHandler(async (req, res) => {
   }
 
   // Cleanup images
-  for (const img of category.image) {
-    if (img.public_id) await cloudinary.uploader.destroy(img.public_id);
+  try {
+    // Cleanup images if they exist
+    for (const img of category.image) {
+      if (img.public_id) {
+        // log what you’re about to delete
+        console.log(`Deleting Cloudinary public_id=${img.public_id}`);
+        await cloudinary.uploader.destroy(img.public_id);
+      }
+    }
+    await category.deleteOne();
+    res.json({ message: "Category removed" });
+  } catch (err) {
+    console.error("Error in deleteCategory:", err);
+    res.status(500);
+    throw new Error("Failed to delete category");
   }
-
-  await category.remove();
-  res.json({ message: "Category removed" });
 });
 
 // @desc    Get all categories
