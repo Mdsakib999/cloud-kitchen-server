@@ -1,11 +1,12 @@
 import express from "express";
+import { createProduct } from "../controllers/product.controller.js";
 import {
   addCategory,
   deleteCategory,
   editCategory,
   getCategories,
-} from "../controllers/admin.controller.js";
-import { uploadCategoryImage } from "../config/multer.js";
+} from "../controllers/category.controller.js";
+import { upload, uploadCategoryImage } from "../config/multer.js";
 
 const adminRouter = express.Router();
 // category
