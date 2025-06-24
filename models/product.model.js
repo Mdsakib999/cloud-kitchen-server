@@ -21,7 +21,6 @@ const OptionGroupSchema = new Schema(
 
 const ProductSchema = new Schema(
   {
-    _id: { type: Number, required: true },
     title: { type: String, required: true },
     category: {
       type: Types.ObjectId,
@@ -35,7 +34,12 @@ const ProductSchema = new Schema(
         ref: "Discount",
       },
     ],
-    images: { type: [String], default: [] },
+    images: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+    ],
     sizes: { type: [ChoiceSchema], default: [] },
     addons: { type: [ChoiceSchema], default: [] },
     options: { type: [OptionGroupSchema], default: [] },
