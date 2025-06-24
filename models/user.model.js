@@ -46,6 +46,11 @@ const userSchema = new mongoose.Schema({
     default:
       "https://media.istockphoto.com/id/1337144146/vector/default-avatar-profile-icon-vector.jpg?s=612x612&w=0&k=20&c=BIbFwuv7FxTWvh5S3vB6bkT0Qv8Vn8N5Ffseq84ClGI=",
   },
+  totalSpent: {
+    type: Number,
+    default: 0,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -54,7 +59,6 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("deleteOne", { document: true }, async function (next) {
   const userId = this._id;
-  console.log("inside delete middleware", userId);
   // 6853eb95de87ffbb65f9620e
   // await Order.deleteMany({ userId });
   // await Comment.deleteMany({ userId });
