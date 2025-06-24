@@ -1,4 +1,3 @@
-import { uploadToCloudinary } from "../config/cloudinary.js";
 import admin from "../config/firebase.js";
 import User from "../models/user.model.js";
 import generateToken from "../utils/generateToken.js";
@@ -20,8 +19,6 @@ const registerUser = async (req, res) => {
 
     let user = await User.findOne({ $or: [{ email }, { uid }] });
 
-    console.log("user.provider==>", user?.provider);
-    console.log("only provider==>", provider);
 
     if (!user) {
       // Register new user
@@ -112,10 +109,8 @@ const handleEmailVerification = async (req, res) => {
       return res.status(400).json({ message: "No token provided" });
     }
     const decodedToken = await admin.auth().verifyIdToken(idToken);
-    console.log("from decodedToken===>", decodedToken);
 
     const user = await User.findOne({ email: decodedToken.email });
-    console.log("from handleEmailVerification===>", user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -132,95 +127,10 @@ const handleEmailVerification = async (req, res) => {
   }
 };
 
-const getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find();
-    return res.status(200).json(users);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
-  }
-};
 
-const updateUser = async (req, res) => {
-  const { name, phone, address } = req.body;
-  const userId = req.params?.id || req.user?._id;
-
-  try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Handle profile picture upload if file is provided
-    let profilePictureUrl = user.profilePicture;
-    if (req.file) {
-      try {
-        profilePictureUrl = await uploadToCloudinary(
-          req.file.buffer,
-          "profile-pictures", // folder name in cloudinary
-          "image"
-        );
-      } catch (uploadError) {
-        console.error("Error uploading to Cloudinary:", uploadError);
-        return res
-          .status(500)
-          .json({ message: "Failed to upload profile picture" });
-      }
-    }
-
-    // Update user fields
-    user.name = name || user.name;
-    user.phone = phone || user.phone;
-    user.address = address || user.address;
-    user.profilePicture = profilePictureUrl;
-
-    await user.save();
-
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      address: user.address,
-      provider: user.provider,
-      uid: user.uid,
-      role: user.role,
-      isEmailVerified: user.isEmailVerified,
-      profilePicture: user.profilePicture,
-    });
-  } catch (error) {
-    console.error("Error in updateUser:", error);
-    res.status(500).json({ message: error.message || "Server error" });
-  }
-};
-
-const deleteUser = async (req, res) => {
-  const userId = req.params?.id || req.user?._id;
-
-  try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    await admin.auth().deleteUser(user.uid);
-    await user.deleteOne();
-
-    res
-      .status(200)
-      .json({ success: true, message: "User deleted successfully" });
-  } catch (error) {
-    console.error("Error in deleteUser:", error);
-    res.status(500).json({ message: error.message || "Server error" });
-  }
-};
 
 export {
   registerUser,
   verifyToken,
-  handleEmailVerification,
-  updateUser,
-  deleteUser,
-  getAllUsers,
+  handleEmailVerification
 };

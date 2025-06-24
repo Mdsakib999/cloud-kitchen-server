@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import adminRouter from "./routes/admin.routes.js";
 import { protect } from "./middleware/auth.middleware.js";
 import { isAdmin } from "./middleware/admin.middleware.js";
+import userRouter from "./routes/user.route.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 // Enhanced CORS configuration
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://cloudkitchen-846fb.web.app",
 ];
 
@@ -64,6 +66,7 @@ app.use(cookieParser());
 // routes
 app.use("/api/auth", authRouter);
 app.use("/api/admin", protect, isAdmin, adminRouter);
+app.use("/api/user", userRouter);
 
 app.get("/", (req, res) => {
   res.json({ message: "Cloud Kitchen API is running..." });
