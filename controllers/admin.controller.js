@@ -89,4 +89,15 @@ const getCategories = asyncHandler(async (req, res) => {
   res.json(categories);
 });
 
-export { addCategory, editCategory, deleteCategory, getCategories };
+// @desc    Add promotional offers
+// @route   POST /api/admin/categories
+// @access  Private/Admin
+const PromoteOffers = async () => {};
+
+export {
+  addCategory,
+  editCategory,
+  deleteCategory,
+  getCategories,
+  PromoteOffers,
+};
