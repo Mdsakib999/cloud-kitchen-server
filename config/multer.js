@@ -26,3 +26,4 @@ export const upload = multer({
 
 // For single profile picture upload
 export const uploadProfilePicture = upload.single("profilePicture");
+export const uploadCategoryImage = upload.single("image");

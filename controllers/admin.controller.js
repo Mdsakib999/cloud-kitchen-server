@@ -8,6 +8,7 @@ import Category from "../models/category.model.js";
 // @access  Private/Admin
 const addCategory = asyncHandler(async (req, res) => {
   const { name } = req.body;
+
   if (!name) {
     res.status(400);
     throw new Error("Category name is required");
@@ -22,23 +23,32 @@ const addCategory = asyncHandler(async (req, res) => {
 
   // Upload image to Cloudinary if provided
   let imageArray = [];
-  if (req.file && req.file.buffer) {
-    const result = await uploadToCloudinary(req.file.buffer, "categories");
-    imageArray.push({
-      url: result.secure_url,
-      public_id: result.public_id,
-    });
+  if (req.file) {
+
+    try {
+      // Fixed: Use the correct variable name
+      const result = await uploadToCloudinary(req.file.buffer, "categories");
+      imageArray.push({
+        url: result.secure_url,
+        public_id: result.public_id,
+      });
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      res.status(500);
+      throw new Error("Failed to upload image");
+    }
   }
+
   const category = await Category.create({ name, image: imageArray });
   res.status(201).json(category);
 });
 
-// @desc    Update existing category
+// @desc    Edit category
 // @route   PUT /api/admin/categories/:id
 // @access  Private/Admin
 const editCategory = asyncHandler(async (req, res) => {
-  const { id } = req.params;
   const { name } = req.body;
+  const { id } = req.params;
 
   const category = await Category.findById(id);
   if (!category) {
@@ -46,21 +56,41 @@ const editCategory = asyncHandler(async (req, res) => {
     throw new Error("Category not found");
   }
 
-  // Update name
-  if (name) category.name = name;
-
-  // Handle image replacement
-  if (req.file && req.file.buffer) {
-    // Delete existing
-    for (const img of category.image) {
-      if (img.public_id) await cloudinary.uploader.destroy(img.public_id);
+  // Update name if provided
+  if (name) {
+    // Check for duplicates (excluding current category)
+    const exists = await Category.findOne({ name, _id: { $ne: id } });
+    if (exists) {
+      res.status(400);
+      throw new Error("Category name already exists");
     }
-    const result = await uploadToCloudinary(req.file.buffer, "categories");
-    category.image = [{ url: result.secure_url, public_id: result.public_id }];
+    category.name = name;
   }
 
-  const updated = await category.save();
-  res.json(updated);
+  // Update image if provided
+  if (req.file) {
+    try {
+      // Delete old image from Cloudinary if exists
+      if (category.image && category.image.length > 0) {
+        // Delete old image
+        await deleteFromCloudinary(category.image[0].public_id);
+      }
+
+      // Upload new image
+      const result = await uploadToCloudinary(req.file.buffer, "categories");
+      category.image = [{
+        url: result.secure_url,
+        public_id: result.public_id,
+      }];
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      res.status(500);
+      throw new Error("Failed to upload image");
+    }
+  }
+
+  const updatedCategory = await category.save();
+  res.json(updatedCategory);
 });
 
 // @desc    Delete category
@@ -68,7 +98,6 @@ const editCategory = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const deleteCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
-
   const category = await Category.findById(id);
   if (!category) {
     res.status(404);
@@ -81,7 +110,6 @@ const deleteCategory = asyncHandler(async (req, res) => {
     for (const img of category.image) {
       if (img.public_id) {
         // log what you’re about to delete
-        console.log(`Deleting Cloudinary public_id=${img.public_id}`);
         await cloudinary.uploader.destroy(img.public_id);
       }
     }
