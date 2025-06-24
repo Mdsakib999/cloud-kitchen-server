@@ -33,7 +33,7 @@ const registerUser = async (req, res) => {
         address: address || null,
         uid,
         role: role || "user",
-        createdAt: user.createdAt,
+        createdAt: user?.createdAt,
         isEmailVerified: decodedToken.email_verified || false,
       };
 
@@ -52,7 +52,7 @@ const registerUser = async (req, res) => {
       provider: user.provider,
       uid: user.uid,
       role: user.role,
-      createdAt: user.createdAt,
+      createdAt: user?.createdAt,
       isEmailVerified: user.isEmailVerified,
       profilePicture: user.profilePicture,
     });
@@ -94,7 +94,7 @@ const verifyToken = async (req, res) => {
       provider: user.provider,
       uid: user.uid,
       role: user.role,
-      createdAt: user.createdAt,
+      createdAt: user?.createdAt,
       isEmailVerified: user.isEmailVerified,
       profilePicture: user.profilePicture,
     });
