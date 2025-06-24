@@ -13,5 +13,7 @@ adminRouter.post("/categories", uploadCategoryImage, addCategory);
 adminRouter.put("/categories/:id", uploadCategoryImage, editCategory);
 adminRouter.delete("/categories/:id", deleteCategory);
 adminRouter.get("/categories", getCategories);
+// product
+adminRouter.post("/products", upload.array("images"), createProduct);
 
 export default adminRouter;
