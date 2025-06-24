@@ -4,6 +4,8 @@ import { notFound, errorHandler } from "./middleware/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import cookieParser from "cookie-parser";
 import adminRouter from "./routes/admin.routes.js";
+import { protect } from "./middleware/auth.middleware.js";
+import { isAdmin } from "./middleware/admin.middleware.js";
 import userRouter from "./routes/user.route.js";
 
 const app = express();
@@ -63,8 +65,8 @@ app.use(cookieParser());
 
 // routes
 app.use("/api/auth", authRouter);
+app.use("/api/admin", protect, isAdmin, adminRouter);
 app.use("/api/user", userRouter);
-app.use("/api/admin", adminRouter);
 
 app.get("/", (req, res) => {
   res.json({ message: "Cloud Kitchen API is running..." });
