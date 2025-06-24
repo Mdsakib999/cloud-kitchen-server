@@ -1,4 +1,4 @@
-import { uploadToCloudinary } from "../config/cloudinary.js";
+import { deleteFromCloudinary, uploadToCloudinary } from "../config/cloudinary.js";
 import { v2 as cloudinary } from "cloudinary";
 import asyncHandler from "express-async-handler";
 import Category from "../models/category.model.js";
