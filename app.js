@@ -4,6 +4,7 @@ import { notFound, errorHandler } from "./middleware/error.middleware.js";
 import authRouter from "./routes/auth.routes.js";
 import cookieParser from "cookie-parser";
 import adminRouter from "./routes/admin.routes.js";
+import userRouter from "./routes/user.route.js";
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.json());
 // Enhanced CORS configuration
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://cloudkitchen-846fb.web.app",
 ];
 
@@ -61,6 +63,7 @@ app.use(cookieParser());
 
 // routes
 app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
 
 app.get("/", (req, res) => {
