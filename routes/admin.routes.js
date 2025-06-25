@@ -1,26 +1,75 @@
 import express from "express";
-// import { createProduct } from "../controllers/product.controller.js";
 import {
   addCategory,
   deleteCategory,
   editCategory,
   getCategories,
 } from "../controllers/category.controller.js";
-import multer from "multer";
 import { createProduct } from "../controllers/product.controller.js";
-import { PromoteOffers } from "../controllers/promote.controller.js";
 import { upload, uploadCategoryImage } from "../config/multer.js";
+import { protect } from "../middleware/auth.middleware.js";
+import { isAdmin } from "../middleware/admin.middleware.js";
+import {
+  createPromotionalOffer,
+  deletePromotionalOffer,
+  getPromotionalOffer,
+  updatePromotionalOffer,
+} from "../controllers/promote.controller.js";
 
-const upload = multer();
 const adminRouter = express.Router();
+
 // category
-adminRouter.post("/categories", uploadCategoryImage, addCategory);
-adminRouter.put("/categories/:id", uploadCategoryImage, editCategory);
-adminRouter.delete("/categories/:id", deleteCategory);
-adminRouter.get("/categories", getCategories);
+adminRouter.post(
+  "/categories",
+  protect,
+  isAdmin,
+  uploadCategoryImage,
+  addCategory
+);
+
+adminRouter.put(
+  "/categories/:id",
+  protect,
+  isAdmin,
+  uploadCategoryImage,
+  editCategory
+);
+adminRouter.delete("/categories/:id", protect, isAdmin, deleteCategory);
+adminRouter.get("/categories", protect, isAdmin, getCategories);
+
 // product
-adminRouter.post("/products", upload.array("images"), createProduct);
+adminRouter.post(
+  "/products",
+  protect,
+  isAdmin,
+  upload.array("images"),
+  createProduct
+);
+
 // promoteOffer
-adminRouter.post("/promote-offers", upload.array("images", 4), PromoteOffers);
+adminRouter.post(
+  "/add-offers",
+  protect,
+  isAdmin,
+  upload.array("images", 4),
+  createPromotionalOffer
+);
+
+adminRouter.get("/all-offers", getPromotionalOffer);
+
+adminRouter.put(
+  "/update-offer/:id",
+  protect,
+  isAdmin,
+  upload.array("images", 4),
+  updatePromotionalOffer
+);
+
+adminRouter.delete(
+  "/delete-offer/:id",
+  protect,
+  isAdmin,
+  deletePromotionalOffer
+);
 
 export default adminRouter;
