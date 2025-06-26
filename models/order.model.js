@@ -1,24 +1,36 @@
-import mongoose from 'mongoose';
+import { model, Schema } from "mongoose";
 
-const orderSchema = new mongoose.Schema(
+const orderSchema = new Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     items: [
       {
         name: { type: String, required: true },
         qty: { type: Number, required: true },
         price: { type: Number, required: true },
-        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+        food: {
+          type: Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
       },
     ],
     totalPrice: { type: Number, required: true },
     isPaid: { type: Boolean, default: false },
-    paidAt: { type: Date },
     isDelivered: { type: Boolean, default: false },
     deliveredAt: { type: Date },
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "card"],
+      default: "cash",
+    },
   },
   { timestamps: true }
 );
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = model("Order", orderSchema);
 export default Order;
