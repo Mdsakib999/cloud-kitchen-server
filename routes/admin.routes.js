@@ -15,6 +15,13 @@ import {
   getPromotionalOffer,
   updatePromotionalOffer,
 } from "../controllers/promote.controller.js";
+import {
+  CheckCouponValidation,
+  createCoupon,
+  deleteCoupon,
+  getCoupons,
+  updateCoupon,
+} from "../controllers/coupon.controller.js";
 
 const adminRouter = express.Router();
 
@@ -71,5 +78,12 @@ adminRouter.delete(
   isAdmin,
   deletePromotionalOffer
 );
+
+// coupon
+adminRouter.post("/apply", protect, CheckCouponValidation);
+adminRouter.post("/create", protect, isAdmin, createCoupon);
+adminRouter.get("/", protect, isAdmin, getCoupons);
+adminRouter.put("/:id", protect, isAdmin, updateCoupon);
+adminRouter.delete("/:id", protect, isAdmin, deleteCoupon);
 
 export default adminRouter;
