@@ -22,6 +22,13 @@ const OptionGroupSchema = new Schema(
 const ProductSchema = new Schema(
   {
     title: { type: String, required: true },
+    price: {
+      type: Number,
+      min: 0,
+      required: function () {
+        return !this.sizes || this.sizes.length === 0;
+      },
+    },
     category: {
       type: Types.ObjectId,
       ref: "Category",
@@ -43,7 +50,7 @@ const ProductSchema = new Schema(
     sizes: { type: [ChoiceSchema], default: [] },
     addons: { type: [ChoiceSchema], default: [] },
     options: { type: [OptionGroupSchema], default: [] },
-    ingredients: { type: [String], default: [] }, // ok to be empty
+    ingredients: { type: [String], default: [] },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     reviews: { type: Number, default: 0, min: 0 },
     cookTime: { type: String }, // optional

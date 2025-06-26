@@ -3,12 +3,16 @@ import { protect } from "../middleware/auth.middleware.js";
 import { isAdmin } from "../middleware/admin.middleware.js";
 import { uploadProfilePicture } from "../config/multer.js";
 import {
-    getAllUsers,
-    updateUser,
-    deleteUser,
-    makeAdmin,
-    removeAdmin
+  getAllUsers,
+  updateUser,
+  deleteUser,
+  makeAdmin,
+  removeAdmin,
 } from "../controllers/user.controller.js";
+import {
+  getProductById,
+  getProducts,
+} from "../controllers/product.controller.js";
 
 const userRouter = express.Router();
 
@@ -18,5 +22,8 @@ userRouter.delete("/:id", protect, deleteUser);
 userRouter.put("/make-admin/:id", protect, isAdmin, makeAdmin);
 userRouter.put("/remove-admin/:id", protect, isAdmin, removeAdmin);
 
+// Products --> General
+userRouter.get("/products", getProducts);
+userRouter.get("/products/:id", getProductById);
 
 export default userRouter;

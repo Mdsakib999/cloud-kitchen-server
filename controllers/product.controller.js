@@ -11,6 +11,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   const {
     title,
     category: categoryId,
+    price: priceRaw,
     sizes,
     addons,
     options,
@@ -25,14 +26,35 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw new Error("Title and category are required");
   }
 
-  // Verify category
+  // Parse JSON fields
+  const parsedSizes = sizes ? JSON.parse(sizes) : [];
+  const parsedAddons = addons ? JSON.parse(addons) : [];
+  const parsedOptions = options ? JSON.parse(options) : [];
+  const parsedIngredients = ingredients ? JSON.parse(ingredients) : [];
+
+  // If no size variants, require a price
+  let price;
+  if (parsedSizes.length === 0) {
+    if (priceRaw == null) {
+      res.status(400);
+      throw new Error("Price is required when there are no size variants");
+    }
+    price = parseFloat(priceRaw);
+    if (isNaN(price) || price < 0) {
+      res.status(400);
+      throw new Error("Price must be a non-negative number");
+    }
+  }
+
+  // Verify category exists
   const category = await Category.findById(categoryId);
   if (!category) {
     res.status(404);
     throw new Error("Category not found");
   }
 
-  let images = [];
+  // Handle image uploads
+  const images = [];
   if (req.files && req.files.length) {
     for (const file of req.files) {
       const result = await uploadToCloudinary(file.buffer, "products");
@@ -40,23 +62,28 @@ export const createProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  const parsedSizes = sizes ? JSON.parse(sizes) : [];
-  const parsedAddons = addons ? JSON.parse(addons) : [];
-  const parsedOptions = options ? JSON.parse(options) : [];
-  const parsedIngredients = ingredients ? JSON.parse(ingredients) : [];
-
-  const product = await Product.create({
+  // Build the new-product payload
+  const newProductData = {
     title,
     category: category._id,
     images,
-    sizes: parsedSizes,
     addons: parsedAddons,
     options: parsedOptions,
     ingredients: parsedIngredients,
     cookTime,
     servings,
-  });
+  };
 
+  // Conditionally include either price or sizes
+  if (parsedSizes.length > 0) {
+    newProductData.sizes = parsedSizes;
+  } else {
+    newProductData.price = price;
+    newProductData.sizes = []; // optional, explicit
+  }
+
+  // Create & respond
+  const product = await Product.create(newProductData);
   res.status(201).json(product);
 });
 
@@ -155,7 +182,7 @@ export const getProducts = asyncHandler(async (req, res) => {
 });
 
 // @desc    Get single product
-// @route   GET /api/products/:id
+// @route   GET /api/users/products/:id
 // @access  Public
 export const getProductById = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id)
