@@ -15,7 +15,7 @@ const createCoupon = async (req, res) => {
 // Get all coupons
 const getCoupons = async (req, res) => {
   const coupons = await Coupon.find().sort({ createdAt: -1 });
-  res.json(coupons);
+  res.status(200).json(coupons);
 };
 
 // Update coupon
@@ -24,7 +24,7 @@ const updateCoupon = async (req, res) => {
     const coupon = await Coupon.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
-    res.json({ success: true, coupon });
+    res.status(200).json({ success: true, coupon });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
@@ -34,7 +34,7 @@ const updateCoupon = async (req, res) => {
 const deleteCoupon = async (req, res) => {
   try {
     await Coupon.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: "Coupon deleted" });
+    res.status(200).json({ success: true, message: "Coupon deleted" });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
@@ -68,7 +68,7 @@ const CheckCouponValidation = async (req, res) => {
     discount = (cartTotal * discount) / 100;
   }
 
-  res.json({ success: true, discount });
+  res.status(200).json({ success: true, discount });
 };
 
 export {
