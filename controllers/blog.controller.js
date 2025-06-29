@@ -38,7 +38,11 @@ export const getBlogById = async (req, res) => {
 
 export const CreateBlog = async (req, res) => {
     try {
-        const { title, content, category, tags } = req.body;
+        const { title, content, category } = req.body;
+        let tags = req.body.tags;
+
+        // Convert tags to array if it's a stringified JSON
+        tags = typeof tags === "string" ? JSON.parse(tags) : tags;
 
         if (!title || !content || !category || !tags || !Array.isArray(tags) || tags.length === 0) {
             return res.status(400).json({
@@ -61,12 +65,12 @@ export const CreateBlog = async (req, res) => {
             image: imageUrl,
         });
 
-
         res.status(201).json({
             status: "success",
             message: "Blog created successfully",
             data: newBlog
         });
+
     } catch (error) {
         console.error("Error creating blog:", error);
         res.status(500).json({
@@ -77,17 +81,28 @@ export const CreateBlog = async (req, res) => {
     }
 };
 
+
 export const UpdateBlog = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, content, category, tags, removeImage, } = req.body;
+        let { title, content, category, tags, removeImage } = req.body;
 
-        // Fetch the existing blog by ID
+        try {
+            if (typeof tags === "string") {
+                tags = JSON.parse(tags);
+            }
+        } catch (err) {
+            return res.status(400).json({
+                status: "failed",
+                message: "Invalid format for tags. It should be an array or JSON stringified array.",
+            });
+        }
+
         const existingBlog = await BlogModel.findById(id);
         if (!existingBlog) {
             return res.status(404).json({
                 status: "failed",
-                message: "Blog not found."
+                message: "Blog not found.",
             });
         }
 
@@ -112,8 +127,9 @@ export const UpdateBlog = async (req, res) => {
             updateFields.image = await uploadToCloudinary(req.file.buffer, "blog_pics");
         }
 
-        // Update the blog
-        const updatedBlog = await BlogModel.findByIdAndUpdate(id, updateFields, { new: true });
+        const updatedBlog = await BlogModel.findByIdAndUpdate(id, updateFields, {
+            new: true,
+        });
 
         res.status(200).json({
             status: "success",
