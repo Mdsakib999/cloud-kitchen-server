@@ -122,9 +122,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
   if (servings) product.servings = servings;
 
   const updated = await product.save();
-  const populated = await updated
-    .populate("category", "name image")
-    .execPopulate();
+  const populated = await updated.populate("category", "name image");
   res.json(populated);
 });
 
