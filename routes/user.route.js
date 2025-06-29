@@ -13,6 +13,7 @@ import {
   getProductById,
   getProducts,
 } from "../controllers/product.controller.js";
+import { getCategories } from "../controllers/category.controller.js";
 
 const userRouter = express.Router();
 
@@ -25,5 +26,6 @@ userRouter.put("/remove-admin/:id", protect, isAdmin, removeAdmin);
 // Products --> General
 userRouter.get("/products", getProducts);
 userRouter.get("/products/:id", getProductById);
+userRouter.get("/get-categories", getCategories);
 
 export default userRouter;

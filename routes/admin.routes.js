@@ -5,7 +5,11 @@ import {
   editCategory,
   getCategories,
 } from "../controllers/category.controller.js";
-import { createProduct } from "../controllers/product.controller.js";
+import {
+  createProduct,
+  deleteProduct,
+  updateProduct,
+} from "../controllers/product.controller.js";
 import { upload, uploadCategoryImage } from "../config/multer.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { isAdmin } from "../middleware/admin.middleware.js";
@@ -53,6 +57,15 @@ adminRouter.post(
   upload.array("images"),
   createProduct
 );
+
+adminRouter.put(
+  "/products/:id",
+  protect,
+  isAdmin,
+  upload.array("images"),
+  updateProduct
+);
+adminRouter.delete("/products/:id", protect, isAdmin, deleteProduct);
 
 // promoteOffer
 adminRouter.post(
