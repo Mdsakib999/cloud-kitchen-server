@@ -5,7 +5,11 @@ import {
   editCategory,
   getCategories,
 } from "../controllers/category.controller.js";
-import { createProduct } from "../controllers/product.controller.js";
+import {
+  createProduct,
+  deleteProduct,
+  updateProduct,
+} from "../controllers/product.controller.js";
 import { upload, uploadCategoryImage } from "../config/multer.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { isAdmin } from "../middleware/admin.middleware.js";
@@ -22,6 +26,7 @@ import {
   getCoupons,
   updateCoupon,
 } from "../controllers/coupon.controller.js";
+import { CreateBlog, DeleteBlog, getAllBlogs, getBlogById, UpdateBlog } from "../controllers/blog.controller.js";
 
 const adminRouter = express.Router();
 
@@ -52,6 +57,15 @@ adminRouter.post(
   upload.array("images"),
   createProduct
 );
+
+adminRouter.put(
+  "/products/:id",
+  protect,
+  isAdmin,
+  upload.array("images"),
+  updateProduct
+);
+adminRouter.delete("/products/:id", protect, isAdmin, deleteProduct);
 
 // promoteOffer
 adminRouter.post(
@@ -85,5 +99,14 @@ adminRouter.post("/create", protect, isAdmin, createCoupon);
 adminRouter.get("/", protect, isAdmin, getCoupons);
 adminRouter.put("/:id", protect, isAdmin, updateCoupon);
 adminRouter.delete("/:id", protect, isAdmin, deleteCoupon);
+
+// Blogs
+adminRouter.post("/create-blog", protect, isAdmin, upload.array("image"), CreateBlog);
+adminRouter.get("/all-blogs", getAllBlogs);
+adminRouter.put("/blog/:id", protect, isAdmin, upload.array("image"), UpdateBlog);
+adminRouter.get("/blog/:id", getBlogById);
+adminRouter.delete("/blog/:id", protect, isAdmin, DeleteBlog);
+
+
 
 export default adminRouter;

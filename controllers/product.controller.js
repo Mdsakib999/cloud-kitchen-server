@@ -1,4 +1,7 @@
-import { uploadToCloudinary } from "../config/cloudinary.js";
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../config/cloudinary.js";
 import asyncHandler from "express-async-handler";
 import Category from "../models/category.model.js";
 import { Product } from "../models/product.model.js";
@@ -140,7 +143,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     await deleteFromCloudinary(img.public_id);
   }
 
-  await product.remove();
+  await product.deleteOne();
   res.json({ message: "Product deleted successfully" });
 });
 
