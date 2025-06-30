@@ -3,7 +3,6 @@ import Coupon from "../models/coupon.model.js";
 // Create a new coupon
 const createCoupon = async (req, res) => {
   try {
-    console.log(req.body);
     const coupon = new Coupon(req.body);
     await coupon.save();
     res.status(201).json({ success: true, coupon });
@@ -15,7 +14,6 @@ const createCoupon = async (req, res) => {
 // Get all coupons
 const getCoupons = async (req, res) => {
   const coupons = await Coupon.find().sort({ createdAt: -1 });
-  console.log("coupons=>", coupons);
   res.status(200).json(coupons);
 };
 
@@ -45,7 +43,6 @@ const deleteCoupon = async (req, res) => {
 const CheckCouponValidation = async (req, res) => {
   const { code, cartTotal } = req.body;
 
-  console.log(code, cartTotal);
   const coupon = await Coupon.findOne({ code });
 
   if (!coupon) return res.status(404).json({ error: "Invalid coupon code" });

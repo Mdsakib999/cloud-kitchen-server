@@ -102,7 +102,7 @@ adminRouter.delete(
 // coupon
 adminRouter.post("/apply", protect, CheckCouponValidation);
 adminRouter.post("/create", protect, isAdmin, createCoupon);
-adminRouter.get("/", protect, isAdmin, getCoupons);
+adminRouter.get("/", protect, getCoupons);
 adminRouter.put("/:id", protect, isAdmin, updateCoupon);
 adminRouter.delete("/:id", protect, isAdmin, deleteCoupon);
 
