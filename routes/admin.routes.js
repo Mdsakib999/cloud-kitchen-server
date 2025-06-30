@@ -53,7 +53,7 @@ adminRouter.put(
   editCategory
 );
 adminRouter.delete("/categories/:id", protect, isAdmin, deleteCategory);
-adminRouter.get("/categories", protect, isAdmin, getCategories);
+adminRouter.get("/categories", getCategories);
 
 // product
 adminRouter.post(

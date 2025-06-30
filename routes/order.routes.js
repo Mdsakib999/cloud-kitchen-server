@@ -1,11 +1,11 @@
 import express from "express";
 import { protect } from "../middleware/auth.middleware.js";
 import {
-  createOrder,
-  deleteOrder,
-  getAllOrders,
-  getOrdersByUser,
-  updateOrder,
+    createOrder,
+    deleteOrder,
+    getAllOrders,
+    getOrdersByUser,
+    updateOrder,
 } from "../controllers/order.controller.js";
 import { isAdmin } from "../middleware/admin.middleware.js";
 
