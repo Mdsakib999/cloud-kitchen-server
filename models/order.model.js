@@ -78,10 +78,26 @@ const orderSchema = new Schema(
       default: false,
     },
     items: [itemSchema],
+    additionalInfo: {
+      type: String,
+      default: "",
+    },
     totalPrice: { type: Number, required: true },
     discountPrice: { type: Number, required: true },
     isPaid: { type: Boolean, default: false },
-    isDelivered: { type: Boolean, default: false },
+    order_status: {
+      type: String,
+      enum: [
+        "pending",
+        "accepted",
+        "preparing",
+        "ready",
+        "delivering",
+        "delivered",
+        "cancelled",
+      ],
+      default: "pending",
+    },
     deliveredAt: { type: Date },
     paymentMethod: {
       type: String,
