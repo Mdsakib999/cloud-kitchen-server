@@ -17,6 +17,7 @@ const createOrder = async (req, res) => {
       totalPrice,
       discountPrice,
       paymentMethod,
+      additionalInfo,
     } = req.body;
     console.log("req.body==>", req.body);
     if (
@@ -72,6 +73,7 @@ const createOrder = async (req, res) => {
       country,
       address,
       city,
+      additionalInfo,
       couponCode: couponCode || "",
       isCouponApplied: !!couponCode,
       items: items.map((item) => ({
@@ -96,4 +98,45 @@ const createOrder = async (req, res) => {
   }
 };
 
-export { createOrder };
+const getAllOrders = async (req, res) => {
+  try {
+    const allOrders = await Order.find();
+    return res.status(200).json(allOrders);
+  } catch (error) {
+    console.log("Failed to fetch order", error);
+    return res.status(500).json(error);
+  }
+};
+
+const getOrdersByUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const orders = await Order.findOne(userId);
+    return res.status(200).json(orders);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+};
+
+const updateOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    //..........
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+};
+
+const deleteOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    //...........
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+};
+
+export { createOrder, getAllOrders, getOrdersByUser, updateOrder, deleteOrder };
