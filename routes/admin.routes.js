@@ -26,7 +26,13 @@ import {
   getCoupons,
   updateCoupon,
 } from "../controllers/coupon.controller.js";
-import { CreateBlog, DeleteBlog, getAllBlogs, getBlogById, UpdateBlog } from "../controllers/blog.controller.js";
+import {
+  CreateBlog,
+  DeleteBlog,
+  getAllBlogs,
+  getBlogById,
+  UpdateBlog,
+} from "../controllers/blog.controller.js";
 
 const adminRouter = express.Router();
 
@@ -101,12 +107,22 @@ adminRouter.put("/:id", protect, isAdmin, updateCoupon);
 adminRouter.delete("/:id", protect, isAdmin, deleteCoupon);
 
 // Blogs
-adminRouter.post("/create-blog", protect, isAdmin, upload.array("image"), CreateBlog);
+adminRouter.post(
+  "/create-blog",
+  protect,
+  isAdmin,
+  upload.single("image"),
+  CreateBlog
+);
 adminRouter.get("/all-blogs", getAllBlogs);
-adminRouter.put("/blog/:id", protect, isAdmin, upload.array("image"), UpdateBlog);
+adminRouter.put(
+  "/blog/:id",
+  protect,
+  isAdmin,
+  upload.single("image"),
+  UpdateBlog
+);
 adminRouter.get("/blog/:id", getBlogById);
 adminRouter.delete("/blog/:id", protect, isAdmin, DeleteBlog);
-
-
 
 export default adminRouter;
