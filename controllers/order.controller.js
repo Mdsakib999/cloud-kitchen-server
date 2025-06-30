@@ -19,7 +19,6 @@ const createOrder = async (req, res) => {
       paymentMethod,
       additionalInfo,
     } = req.body;
-    console.log("req.body==>", req.body);
     if (
       !user ||
       !name ||
@@ -30,7 +29,6 @@ const createOrder = async (req, res) => {
       !items ||
       !totalPrice
     ) {
-      console.log("MISSING FIELDS");
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -90,7 +88,6 @@ const createOrder = async (req, res) => {
     });
 
     await order.save();
-    console.log("order==>", order);
     res.status(201).json({ message: "Order created successfully", order });
   } catch (error) {
     console.error("Error creating order:", error);
@@ -103,7 +100,7 @@ const getAllOrders = async (req, res) => {
     const allOrders = await Order.find();
     return res.status(200).json(allOrders);
   } catch (error) {
-    console.log("Failed to fetch order", error);
+    console.error("Failed to fetch order", error);
     return res.status(500).json(error);
   }
 };
@@ -113,9 +110,21 @@ const getOrdersByUser = async (req, res) => {
     const userId = req.params.id;
     console.log(userId);
     const orders = await Order.find({ user: userId });
+    console.log(orders);
     return res.status(200).json(orders);
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+const getOrderById = async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.findById(orderId);
+    return res.status(200).json(order);
+  } catch (error) {
+    console.error(error);
     return res.status(500).json(error);
   }
 };
@@ -123,9 +132,20 @@ const getOrdersByUser = async (req, res) => {
 const updateOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
-    //..........
+    const updateFields = req.body;
+    // Prevent updating the order's _id
+    if (updateFields._id) delete updateFields._id;
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, updateFields, {
+      new: true,
+    });
+    if (!updatedOrder) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    return res
+      .status(200)
+      .json({ message: "Order updated successfully", order: updatedOrder });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json(error);
   }
 };
@@ -133,11 +153,22 @@ const updateOrder = async (req, res) => {
 const deleteOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
-    //...........
+    const deletedOrder = await Order.findByIdAndDelete(orderId);
+    if (!deletedOrder) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    return res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json(error);
   }
 };
 
-export { createOrder, getAllOrders, getOrdersByUser, updateOrder, deleteOrder };
+export {
+  createOrder,
+  getAllOrders,
+  getOrdersByUser,
+  getOrderById,
+  updateOrder,
+  deleteOrder,
+};

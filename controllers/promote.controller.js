@@ -78,45 +78,6 @@ const createPromotionalOffer = async (req, res) => {
   }
 };
 
-// const createPromotionalOffer = async (req, res) => {
-//   try {
-//     if (!req.files || req.files.length === 0) {
-//       return res.status(400).json({ message: "No images uploaded" });
-//     }
-
-//     if (req.files.length > 4) {
-//       return res.status(400).json({ message: "Maximum 4 images allowed" });
-//     }
-
-//     // Delete all existing offers + images
-//     const existingOffers = await Promotion.find();
-//     for (const offer of existingOffers) {
-//       for (const img of offer.images) {
-//         await deleteFromCloudinary(img.url);
-//       }
-//       await offer.deleteOne();
-//     }
-
-//     // Upload new images
-//     const images = [];
-//     for (const file of req.files) {
-//       const result = await uploadToCloudinary(file.buffer, "promote-offers");
-//       images.push({ url: result.secure_url, public_id: result.public_id });
-//     }
-
-//     const newOffer = await Promotion.create({ images });
-
-//     res.status(201).json({
-//       message: "New promotional offer created",
-//       success: true,
-//       data: newOffer,
-//     });
-//   } catch (error) {
-//     console.error("Create Offer Error:", error);
-//     res.status(500).json({ message: "Internal server error", success: false });
-//   }
-// };
-
 // @desc    get promotional offers
 // @route   POST /api/admin/all-offers
 // @access  public
