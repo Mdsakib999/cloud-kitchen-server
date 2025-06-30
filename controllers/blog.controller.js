@@ -95,16 +95,16 @@ export const UpdateBlog = async (req, res) => {
     const { id } = req.params;
     let { title, content, category, tags, removeImage } = req.body;
 
-    try {
-      if (typeof tags === "string") {
+    if (typeof tags === "string") {
+      try {
         tags = JSON.parse(tags);
+      } catch {
+        return res.status(400).json({
+          status: "failed",
+          message:
+            "Invalid tags format; must be an array or JSON-stringified array.",
+        });
       }
-    } catch (err) {
-      return res.status(400).json({
-        status: "failed",
-        message:
-          "Invalid format for tags. It should be an array or JSON stringified array.",
-      });
     }
 
     const existingBlog = await BlogModel.findById(id);
@@ -116,41 +116,41 @@ export const UpdateBlog = async (req, res) => {
     }
 
     const updateFields = {};
-
     if (title) updateFields.title = title;
     if (content) updateFields.content = content;
     if (category) updateFields.category = category;
-    if (tags && Array.isArray(tags)) updateFields.tags = tags;
+    if (Array.isArray(tags)) updateFields.tags = tags;
 
-    // Handle image removal
     if (removeImage === "true" && existingBlog.image) {
       await deleteFromCloudinary(existingBlog.image);
       updateFields.image = "";
     }
 
-    // Handle new image upload
     if (req.file) {
       if (existingBlog.image) {
         await deleteFromCloudinary(existingBlog.image);
       }
-      updateFields.image = await uploadToCloudinary(
+      const { secure_url } = await uploadToCloudinary(
         req.file.buffer,
         "blog_pics"
       );
+      updateFields.image = secure_url;
     }
 
-    const updatedBlog = await BlogModel.findByIdAndUpdate(id, updateFields, {
-      new: true,
-    });
+    const updatedBlog = await BlogModel.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    );
 
-    res.status(200).json({
+    return res.status(200).json({
       status: "success",
       message: "Blog updated successfully.",
       data: updatedBlog,
     });
   } catch (error) {
     console.error("Error updating blog:", error);
-    res.status(500).json({
+    return res.status(500).json({
       status: "failed",
       message: "Error updating blog.",
       error: error.message,
