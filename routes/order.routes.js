@@ -14,9 +14,9 @@ const orderRouter = express.Router();
 
 orderRouter.post("/create-order", protect, createOrder);
 orderRouter.get("/all-orders", protect, isAdmin, getAllOrders);
+orderRouter.get("/user/:id", protect, getOrdersByUser);
 orderRouter.get("/:orderId", protect, getOrderById);
 orderRouter.put("/:id", protect, updateOrder);
 orderRouter.delete("/:id", protect, deleteOrder);
-orderRouter.get("/:id", protect, getOrdersByUser);
 
 export default orderRouter;
