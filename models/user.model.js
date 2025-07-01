@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Order from "./order.model.js";
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -59,9 +60,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("deleteOne", { document: true }, async function (next) {
   const userId = this._id;
-  // 6853eb95de87ffbb65f9620e
-  // await Order.deleteMany({ userId });
-  // await Comment.deleteMany({ userId });
+  await Order.deleteMany({ user: userId });
   next();
 });
 
