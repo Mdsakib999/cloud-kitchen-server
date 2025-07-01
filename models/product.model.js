@@ -5,6 +5,7 @@ const ChoiceSchema = new Schema(
   {
     label: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
+    discountPrice: { type: Number },
   },
   { _id: false }
 );
@@ -22,25 +23,19 @@ const OptionGroupSchema = new Schema(
 const ProductSchema = new Schema(
   {
     title: { type: String, required: true },
-    // price: {
-    //   type: Number,
-    //   min: 0,
-    //   required: function () {
-    //     return !this.sizes || this.sizes.length === 0;
-    //   },
-    // },
+    description: { type: String },
     category: {
       type: Types.ObjectId,
       ref: "Category",
       required: true,
     },
     // different discount schema
-    discounts: [
-      {
-        type: Types.ObjectId,
-        ref: "Discount",
-      },
-    ],
+    // discounts: [
+    //   {
+    //     type: Types.ObjectId,
+    //     ref: "Discount",
+    //   },
+    // ],
     images: [
       {
         url: { type: String, required: true },
