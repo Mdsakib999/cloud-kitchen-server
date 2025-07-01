@@ -13,6 +13,7 @@ import { Product } from "../models/product.model.js";
 export const createProduct = asyncHandler(async (req, res) => {
   const {
     title,
+    description,
     category: categoryId,
     sizes,
     addons,
@@ -50,6 +51,7 @@ export const createProduct = asyncHandler(async (req, res) => {
 
   const product = await Product.create({
     title,
+    description,
     category: category._id,
     images,
     sizes: parsedSizes,
@@ -69,6 +71,7 @@ export const createProduct = asyncHandler(async (req, res) => {
 export const updateProduct = asyncHandler(async (req, res) => {
   const {
     title,
+    description,
     category: categoryId,
     sizes,
     addons,
@@ -93,10 +96,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
     }
     product.category = category._id;
   }
-
-  // Handle new image uploads
+  // image uploads
   if (req.files && req.files.length) {
-    // Optionally, delete old images from Cloudinary
     for (const img of product.images) {
       await deleteFromCloudinary(img.public_id);
     }
@@ -112,6 +113,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
   // Update other fields
   if (title) product.title = title;
+  if (description) product.description = description;
   product.sizes = sizes ? JSON.parse(sizes) : product.sizes;
   product.addons = addons ? JSON.parse(addons) : product.addons;
   product.options = options ? JSON.parse(options) : product.options;
