@@ -29,13 +29,6 @@ const ProductSchema = new Schema(
       ref: "Category",
       required: true,
     },
-    // different discount schema
-    // discounts: [
-    //   {
-    //     type: Types.ObjectId,
-    //     ref: "Discount",
-    //   },
-    // ],
     images: [
       {
         url: { type: String, required: true },
