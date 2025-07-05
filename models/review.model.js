@@ -43,6 +43,5 @@ const ReviewSchema = new Schema(
 );
 
 // Enforce one review per user per product per order
-ReviewSchema.index({ user: 1, product: 1, order: 1 }, { unique: true });
-
+ReviewSchema.index({ user: 1, product: 1, order: 1 });
 export const Review = model("Review", ReviewSchema);
