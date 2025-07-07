@@ -198,32 +198,39 @@ export const getTrendingProducts = asyncHandler(async (req, res) => {
 
   // Current period sales
   const currentSales = await Order.aggregate([
-    { $match: { createdAt: { $gte: fromDate } } },
+    {
+      $match: {
+        createdAt: { $gte: fromDate },
+        order_status: "delivered",
+      },
+    },
     { $unwind: "$items" },
     {
       $group: {
         _id: "$items.food",
         totalSold: { $sum: "$items.qty" },
-        totalRevenue: { $sum: { $multiply: ["$items.price", "$items.qty"] } }
+        totalRevenue: { $sum: { $multiply: ["$items.price", "$items.qty"] } },
       },
     },
   ]);
 
   // Previous period sales
   const previousSales = await Order.aggregate([
-    { $match: { createdAt: { $gte: previousFromDate, $lt: fromDate } } },
+    {
+      $match: {
+        createdAt: { $gte: previousFromDate, $lt: fromDate },
+        order_status: "delivered",
+      },
+    },
     { $unwind: "$items" },
     {
       $group: {
         _id: "$items.food",
         totalSold: { $sum: "$items.qty" },
-        totalRevenue: { $sum: { $multiply: ["$items.price", "$items.qty"] } }
+        totalRevenue: { $sum: { $multiply: ["$items.price", "$items.qty"] } },
       },
     },
   ]);
-
-
-
 
   // Convert previous period sales to a quick-lookup map
   const prevSalesMap = {};
