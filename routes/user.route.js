@@ -33,7 +33,7 @@ userRouter.get("/products/:id", getProductById);
 userRouter.get("/get-categories", getCategories);
 
 // Review
-userRouter.post("/reviews", createReview);
+userRouter.post("/reviews", protect, createReview);
 userRouter.get("/:productId/reviews", getProductReviews);
 
 export default userRouter;
