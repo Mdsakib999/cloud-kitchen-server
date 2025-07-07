@@ -14,6 +14,10 @@ import {
   getProducts,
 } from "../controllers/product.controller.js";
 import { getCategories } from "../controllers/category.controller.js";
+import {
+  createReview,
+  getProductReviews,
+} from "../controllers/review.controller.js";
 
 const userRouter = express.Router();
 
@@ -27,5 +31,9 @@ userRouter.put("/remove-admin/:id", protect, isAdmin, removeAdmin);
 userRouter.get("/products", getProducts);
 userRouter.get("/products/:id", getProductById);
 userRouter.get("/get-categories", getCategories);
+
+// Review
+userRouter.post("/reviews", protect, createReview);
+userRouter.get("/:productId/reviews", getProductReviews);
 
 export default userRouter;
