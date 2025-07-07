@@ -1,4 +1,7 @@
-import { deleteFromCloudinary, uploadToCloudinary } from "../config/cloudinary.js";
+import {
+  deleteFromCloudinary,
+  uploadToCloudinary,
+} from "../config/cloudinary.js";
 import { v2 as cloudinary } from "cloudinary";
 import asyncHandler from "express-async-handler";
 import Category from "../models/category.model.js";
@@ -24,7 +27,6 @@ const addCategory = asyncHandler(async (req, res) => {
   // Upload image to Cloudinary if provided
   let imageArray = [];
   if (req.file) {
-
     try {
       // Fixed: Use the correct variable name
       const result = await uploadToCloudinary(req.file.buffer, "categories");
@@ -78,14 +80,22 @@ const editCategory = asyncHandler(async (req, res) => {
 
       // Upload new image
       const result = await uploadToCloudinary(req.file.buffer, "categories");
-      category.image = [{
-        url: result.secure_url,
-        public_id: result.public_id,
-      }];
+      category.image = [
+        {
+          url: result.secure_url,
+          public_id: result.public_id,
+        },
+      ];
     } catch (error) {
       console.error("Cloudinary upload error:", error);
       res.status(500);
       throw new Error("Failed to upload image");
+    }
+  } else if (req.body.removeImage === "true") {
+    // Remove image if requested
+    if (category.image && category.image.length > 0) {
+      await deleteFromCloudinary(category.image[0].public_id);
+      category.image = [];
     }
   }
 
