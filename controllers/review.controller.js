@@ -4,11 +4,9 @@ import Order from "../models/order.model.js";
 import { Product } from "../models/product.model.js";
 import { Review } from "../models/review.model.js";
 
-//* Helper: recalc and persist product.rating & product.reviews count
-
 async function updateProductRating(productId) {
   const stats = await Review.aggregate([
-    { $match: { product: mongoose.Types.ObjectId(productId) } },
+    { $match: { product: new mongoose.Types.ObjectId(productId) } },
     {
       $group: {
         _id: "$product",
@@ -39,6 +37,7 @@ export const createReview = asyncHandler(async (req, res) => {
     comment,
   } = req.body;
   const userId = req.user._id;
+  console.log(req.body);
 
   const order = await Order.findById(orderId);
   if (!order || order.user.toString() !== userId.toString()) {
@@ -52,14 +51,30 @@ export const createReview = asyncHandler(async (req, res) => {
     throw new Error("Cannot review a product you did not purchase");
   }
 
-  const review = await Review.create({
-    user: userId,
-    product: productId,
-    order: orderId,
-    rating,
-    title,
-    comment,
-  });
+  let review;
+
+  try {
+    // review = await Review.create({
+    //   user: userId,
+    //   product: productId,
+    //   order: orderId,
+    //   rating,
+    //   title,
+    //   comment,
+    // });
+    review = await Review.findOneAndUpdate(
+      { user: userId, product: productId, order: orderId },
+      { rating, title, comment },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({
+        message: "You have already reviewed this item for this order.",
+      });
+    }
+    throw err;
+  }
 
   await updateProductRating(productId);
 
@@ -85,7 +100,7 @@ export const getProductReviews = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate("user", "name avatar") // adjust to your User schema
+    .populate("user", "name profilePicture")
     .lean();
 
   res.json({
