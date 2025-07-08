@@ -36,7 +36,7 @@ const ProductSchema = new Schema(
       },
     ],
     // ADD BASE PRICE FIELD
-    price: { type: Number, required: true, min: 0 },
+    // price: { type: Number, required: true, min: 0 },
     sizes: { type: [ChoiceSchema], default: [], required: true },
     addons: { type: [ChoiceSchema], default: [] },
     options: { type: [OptionGroupSchema], default: [] },
