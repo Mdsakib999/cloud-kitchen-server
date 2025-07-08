@@ -35,13 +35,15 @@ const ProductSchema = new Schema(
         public_id: { type: String, required: true },
       },
     ],
+    // ADD BASE PRICE FIELD
+    price: { type: Number, required: true, min: 0 },
     sizes: { type: [ChoiceSchema], default: [], required: true },
     addons: { type: [ChoiceSchema], default: [] },
     options: { type: [OptionGroupSchema], default: [] },
     ingredients: { type: [String], default: [] },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     reviews: { type: Number, default: 0, min: 0 },
-    cookTime: { type: String }, // optional
+    cookTime: { type: String },
     servings: { type: Number, default: 1, min: 1 },
   },
   { timestamps: true }

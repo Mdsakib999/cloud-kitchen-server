@@ -5,6 +5,7 @@ import {
 import asyncHandler from "express-async-handler";
 import Category from "../models/category.model.js";
 import { Product } from "../models/product.model.js";
+import Order from "../models/order.model.js";
 
 // @desc    Create a new product
 // @route   POST /api/admin/products
@@ -177,4 +178,112 @@ export const getProductById = asyncHandler(async (req, res) => {
   }
 
   res.json(product);
+});
+
+// @desc    Get trending products
+// @route   GET /api/admin/products/trending
+// @access  Public
+
+export const getTrendingProducts = asyncHandler(async (req, res) => {
+  const { period = "weekly" } = req.query;
+
+  const now = new Date();
+  let fromDate = new Date();
+  let previousFromDate = new Date();
+
+  if (period === "daily") {
+    fromDate.setDate(now.getDate() - 1);
+    previousFromDate.setDate(fromDate.getDate() - 1);
+  } else if (period === "monthly") {
+    fromDate.setMonth(now.getMonth() - 1);
+    previousFromDate.setMonth(fromDate.getMonth() - 1);
+  } else {
+    fromDate.setDate(now.getDate() - 7);
+    previousFromDate.setDate(fromDate.getDate() - 7);
+  }
+
+  // Current period sales
+  const currentSales = await Order.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: fromDate },
+        order_status: "delivered",
+      },
+    },
+    { $unwind: "$items" },
+    {
+      $group: {
+        _id: "$items.food",
+        totalSold: { $sum: "$items.qty" },
+        totalRevenue: { $sum: { $multiply: ["$items.price", "$items.qty"] } },
+      },
+    },
+  ]);
+
+  // Previous period sales
+  const previousSales = await Order.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: previousFromDate, $lt: fromDate },
+        order_status: "delivered",
+      },
+    },
+    { $unwind: "$items" },
+    {
+      $group: {
+        _id: "$items.food",
+        totalSold: { $sum: "$items.qty" },
+        totalRevenue: { $sum: { $multiply: ["$items.price", "$items.qty"] } },
+      },
+    },
+  ]);
+
+  // Convert previous period sales to a quick-lookup map
+  const prevSalesMap = {};
+  for (const item of previousSales) {
+    prevSalesMap[item._id.toString()] = item.totalSold;
+  }
+
+  // Sort and limit to TOP 6 instead of 10
+  currentSales.sort((a, b) => b.totalSold - a.totalSold);
+  const topSales = currentSales.slice(0, 6); // CHANGED: Show only top 6
+
+  // Fetch product details and calculate trend
+  const trending = await Promise.all(
+    topSales.map(async (item, index) => {
+      const product = await Product.findById(item._id).populate(
+        "category",
+        "name"
+      );
+
+      if (!product) {
+        return null;
+      }
+
+      const prevSales = prevSalesMap[item._id.toString()] || 0;
+      const change =
+        prevSales === 0 ? 100 : ((item.totalSold - prevSales) / prevSales) * 100;
+      const trend = change >= 0 ? "up" : "down";
+
+      return {
+        id: product._id,
+        rank: index + 1,
+        name: product.title,
+        unitPrice: product.price,
+        totalRevenue: item.totalRevenue,
+        category: product.category?.name || "Unknown",
+        image: product.images?.[0]?.url || "",
+        sales: item.totalSold,
+        percentage: Math.abs(Math.round(change)),
+        trend,
+      };
+
+
+    })
+  );
+
+  // Filter out null values from deleted products
+  const validTrending = trending.filter(item => item !== null);
+
+  res.json(validTrending);
 });
