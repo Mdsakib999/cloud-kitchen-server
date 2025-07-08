@@ -68,7 +68,7 @@ adminRouter.put(
   "/products/:id",
   protect,
   isAdmin,
-  upload.array("images"),
+  upload.array("newImages"),
   updateProduct
 );
 adminRouter.delete("/products/:id", protect, isAdmin, deleteProduct);

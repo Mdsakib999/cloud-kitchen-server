@@ -97,18 +97,23 @@ export const updateProduct = asyncHandler(async (req, res) => {
     product.category = category._id;
   }
   // image uploads
-  if (req.files && req.files.length) {
-    for (const img of product.images) {
-      await deleteFromCloudinary(img.public_id);
-    }
-    product.images = [];
-    for (const file of req.files) {
-      const result = await uploadToCloudinary(file.buffer, "products");
-      product.images.push({
-        url: result.secure_url,
-        public_id: result.public_id,
-      });
-    }
+  const kept = req.body.existingImages
+    ? JSON.parse(req.body.existingImages)
+    : product.images;
+
+  const toDelete = product.images.filter(
+    (img) => !kept.some((k) => k.public_id === img.public_id)
+  );
+  await Promise.all(toDelete.map((img) => deleteFromCloudinary(img.public_id)));
+
+  product.images = kept;
+
+  for (const file of req.files) {
+    const { secure_url, public_id } = await uploadToCloudinary(
+      file.buffer,
+      "products"
+    );
+    product.images.push({ url: secure_url, public_id });
   }
 
   // Update other fields
@@ -124,6 +129,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
   if (servings) product.servings = servings;
 
   const updated = await product.save();
+
   const populated = await updated.populate("category", "name image");
   res.json(populated);
 });
