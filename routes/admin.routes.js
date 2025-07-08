@@ -8,6 +8,7 @@ import {
 import {
   createProduct,
   deleteProduct,
+  getProductById,
   updateProduct,
 } from "../controllers/product.controller.js";
 import { upload, uploadCategoryImage } from "../config/multer.js";
@@ -56,6 +57,8 @@ adminRouter.delete("/categories/:id", protect, isAdmin, deleteCategory);
 adminRouter.get("/categories", getCategories);
 
 // product
+adminRouter.get("/products/:id", getProductById);
+
 adminRouter.post(
   "/products",
   protect,
