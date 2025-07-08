@@ -10,6 +10,7 @@ import {
   deleteProduct,
   getProductById,
   updateProduct,
+  getTrendingProducts,
 } from "../controllers/product.controller.js";
 import { upload, uploadCategoryImage } from "../config/multer.js";
 import { protect } from "../middleware/auth.middleware.js";
@@ -57,6 +58,7 @@ adminRouter.delete("/categories/:id", protect, isAdmin, deleteCategory);
 adminRouter.get("/categories", getCategories);
 
 // product
+adminRouter.get("/products/trending", getTrendingProducts);
 adminRouter.get("/products/:id", getProductById);
 
 adminRouter.post(
@@ -71,7 +73,7 @@ adminRouter.put(
   "/products/:id",
   protect,
   isAdmin,
-  upload.array("images"),
+  upload.array("newImages"),
   updateProduct
 );
 adminRouter.delete("/products/:id", protect, isAdmin, deleteProduct);
