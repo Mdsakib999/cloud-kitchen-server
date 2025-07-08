@@ -8,6 +8,7 @@ import {
 import {
   createProduct,
   deleteProduct,
+  getProductById,
   updateProduct,
   getTrendingProducts,
 } from "../controllers/product.controller.js";
@@ -58,6 +59,7 @@ adminRouter.get("/categories", getCategories);
 
 // product
 adminRouter.get("/products/trending", getTrendingProducts);
+adminRouter.get("/products/:id", getProductById);
 
 adminRouter.post(
   "/products",
