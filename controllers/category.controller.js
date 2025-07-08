@@ -18,7 +18,8 @@ const addCategory = asyncHandler(async (req, res) => {
   }
 
   // Prevent duplicates
-  const exists = await Category.findOne({ name });
+  const exists = await Category.findOne({ name: { $regex: `^${name}$`, $options: "i" } });
+
   if (exists) {
     res.status(400);
     throw new Error("Category already exists");
