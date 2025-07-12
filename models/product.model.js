@@ -24,6 +24,7 @@ const ProductSchema = new Schema(
   {
     title: { type: String, required: true },
     description: { type: String },
+    longDescription: { type: String },
     category: {
       type: Types.ObjectId,
       ref: "Category",
