@@ -5,14 +5,16 @@ import authRouter from "./routes/auth.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import userRouter from "./routes/user.route.js";
 import orderRouter from "./routes/order.routes.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 
 app.use(express.json());
 
 const allowedOrigins = [
+  process.env.CLIENT_URL,
   "http://localhost:5173",
-  "https://cloudkitchen-846fb.web.app",
 ];
 
 app.use(
